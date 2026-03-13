@@ -31,8 +31,6 @@ jobs:
             # Semver tags are generated only when a GitHub release with a
             # tag matching vX.Y.Z is published (e.g. v1.2.3 → 1.2.3, 1.2, 1)
             type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
             type=sha,prefix=sha-,format=short
             type=raw,value=latest,enable={{is_default_branch}}
 
