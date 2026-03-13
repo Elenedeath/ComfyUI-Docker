@@ -1,36 +1,50 @@
-# ComfyUI Docker Compose File v1.0.1 by John Aldred
-# http://www.johnaldred.com
-# http://github.com/kaouthia
-
 services:
-  comfyk:
-    build:
-      dockerfile: Dockerfile
-    image: comfyui:latest
+  comfyui:
+    image: hikage/comfyui-docker:latest
     container_name: comfyui
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all,compute,utility
     ports:
       - "8188:8188"
     volumes:
       # persist your models:
-      # - c:/home/user/comfyui/models:/app/ComfyUI/models:rw
       - /mnt/.ix-apps/app_mounts/comfyui/models:/app/ComfyUI/models:rw
 
       # load your input content:
-      # - c:/home/user/comfyui/input:/app/ComfyUI/input:rw
       - /mnt/.ix-apps/app_mounts/comfyui/input:/app/ComfyUI/input:rw
 
       # persist your output content:
-      - c:/home/user/comfyui/output:/app/ComfyUI/output:rw
       - /mnt/.ix-apps/app_mounts/comfyui/output:/app/ComfyUI/output:rw
 
       # persist user settings:
-      - c:/home/user/comfyui/user:/app/ComfyUI/user:rw
       - /mnt/.ix-apps/app_mounts/comfyui/user:/app/ComfyUI/user:rw
 
     # https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/docker-specialized.html
-    runtime: nvidia
-    environment:
-      - NVIDIA_VISIBLE_DEVICES=all
     stdin_open: true
     tty: true
     restart: unless-stopped
+x-notes: >
+  # comfyui-docker
+
+  **Source** :
+  [https://github.com/Elenedeath/ComfyUI-Docker](https://github.com/Elenedeath/ComfyUI-Docker)
+
+  **Image Docker** : hikage/comfyui-docker:latest
+
+  ## Security
+
+
+  **Read the following security precautions to ensure that you wish to continue
+  using this application.**
+
+  ---
+
+  ## Bug Reports and Feature Requests
+
+
+  If you find a bug in this app or have an idea for a new feature, please file
+  an issue at
+
+  https://github.com/Elenedeath/ComfyUI-Docker
