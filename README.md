@@ -1,4 +1,4 @@
-# ComfyUI Docker Stack
+# ComfyUI Docker Stack | TrueNAS SCALE Ready
 
 [![ComfyUI Docker](https://www.johnaldred.com/wp-content/uploads/2025/05/comfyui-docker.jpg)](https://www.johnaldred.com/running-comfyui-in-docker-on-windows-or-linux/)
 
@@ -60,6 +60,14 @@ C:\Users\yourname\comfyui\flows
 /home/username/comfyui/output
 /home/username/comfyui/settings
 /home/username/comfyui/flows
+```
+
+**On TrueNAS**:
+```
+/mnt/.ix-apps/app_mounts/comfyui/models
+/mnt/.ix-apps/app_mounts/comfyui/input
+/mnt/.ix-apps/app_mounts/comfyui/output
+/mnt/.ix-apps/app_mounts/comfyui/user
 ```
 
 And update the paths in `docker-compose.yml` to match your actual folder locations.
