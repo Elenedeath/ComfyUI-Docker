@@ -6,16 +6,25 @@
 
 set -e
 
+# === FIX DNS (anti-Quad9 timeout TrueNAS) ===
+echo "nameserver 8.8.8.8" > /etc/resolv.conf
+echo "nameserver 1.1.1.1" >> /etc/resolv.conf
+echo "search localdomain" >> /etc/resolv.conf
+echo "↳ DNS fixé: 8.8.8.8 + 1.1.1.1"
+
+# DNS check
+nslookup github.com 8.8.8.8 >/dev/null 2>&1 && echo "↳ DNS OK" || echo "↳ DNS FAIL"
+
 # --- Force ComfyUI-Manager config (uv off, no file logging, safe DB) ---
 # Make sure user dirs exist and are writable (handles Windows bind mounts)
-mkdir -p /app/ComfyUI/user /app/ComfyUI/user/default /app/ComfyUI/user/__manager
+mkdir -p /opt/comfyui/user/default /opt/comfyui/user/__manager
 chown -R "$(id -u)":"$(id -g)" /app/ComfyUI/user || true
 chmod -R u+rwX /app/ComfyUI/user || true
 
-CFG_DIR="/app/ComfyUI/user/__manager"
+CFG_DIR="/opt/comfyui/user/__manager"
 CFG_FILE="$CFG_DIR/config.ini"
 
-DB_DIR="/app/ComfyUI/user/default"
+DB_DIR="/opt/comfyui/user/default"
 DB_PATH="${DB_DIR}/manager.db"
 SQLITE_URL="sqlite:////${DB_PATH}"
 
@@ -35,7 +44,6 @@ always_lazy_install = False
 bypass_ssl = True
 EOF
 fi
-
 
 # --- Prepare custom nodes ---
 CN_DIR=/opt/comfyui/custom_nodes
