@@ -37,6 +37,11 @@ RUN git clone https://github.com/Comfy-Org/ComfyUI.git /opt/comfyui && \
 RUN git clone https://github.com/Comfy-Org/ComfyUI-Manager.git /opt/comfyui-manager && \
     cd /opt/comfyui-manager && git checkout ${COMFYUI_MANAGER_VERSION}
 
+# Pin PyTorch stack
+RUN pip install --break-system-packages --no-deps \
+    torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 \
+    --index-url https://download.pytorch.org/whl/cu124
+
 # Installs the required Python packages for both ComfyUI and the ComfyUI Manager
 RUN pip install --break-system-packages \
     --requirement /opt/comfyui/requirements.txt \

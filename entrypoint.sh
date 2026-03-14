@@ -76,8 +76,8 @@ if [ ! -f "$INIT_MARKER" ]; then
   for dir in "$CN_DIR"/*/; do
     req="$dir/requirements.txt"
     if [ -f "$req" ]; then
-      echo "  ↳ pip install --break-system-packages --upgrade -r $req"
-      python -m pip install --break-system-packages --no-cache-dir --upgrade -r "$req"
+      echo "  ↳ pip install --break-system-packages --no-deps -r $req"
+      python -m pip install --break-system-packages --no-cache-dir --no-deps -r "$req"
     fi
   done
 
