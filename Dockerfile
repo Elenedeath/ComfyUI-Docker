@@ -12,21 +12,17 @@ ARG UID=1000
 ARG GID=1000
 
 # Install OS deps and create the non-root user
-RUN apt-get update \
- && apt-get install -y --no-install-recommends git \
- && groupadd --gid ${GID} appuser \
- && useradd --uid ${UID} --gid ${GID} --create-home --shell /bin/bash appuser \
- && rm -rf /var/lib/apt/lists/*
-
 # Install Mesa/GL and GLib so OpenCV can load libGL.so.1 for ComfyUI-VideoHelperSuite
 RUN apt-get update \
- && apt-get install -y --no-install-recommends \
+ && apt-get install -y --no-install-recommends git \
+      gcc g++ python3-dev build-essential \
       libgl1 \
       libglx-mesa0 \
       libglib2.0-0 \
       fonts-dejavu-core \
       fontconfig \
-      gcc \
+ && groupadd --gid ${GID} appuser \
+ && useradd --uid ${UID} --gid ${GID} --create-home --shell /bin/bash appuser \
  && rm -rf /var/lib/apt/lists/*
 
 # Upgrade pip
