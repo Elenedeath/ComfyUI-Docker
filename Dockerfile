@@ -39,22 +39,17 @@ RUN git clone https://github.com/Comfy-Org/ComfyUI-Manager.git /opt/comfyui-mana
     cd /opt/comfyui-manager && \
     git checkout ${COMFYUI_MANAGER_VERSION}
 
-# Upgrade pip
-RUN pip install --upgrade pip
-
 # Installs the required Python packages for both ComfyUI and the ComfyUI Manager
 RUN pip install --break-system-packages \
     --requirement /opt/comfyui/requirements.txt \
-    --requirement /opt/comfyui-manager/requirements.txt
+    --requirement /opt/comfyui-manager/requirements.txt && \
+    pip cache purge
 
 # Switch to non-root user
 USER $UID:$GID
 
 # Sets the working directory to the ComfyUI directory
 WORKDIR /opt/comfyui
-
-# (Optional) Clean up pip cache to reduce image size
-RUN pip cache purge
 
 # Exposes the default port of ComfyUI (this is not actually exposing the port to the host machine, but it is good practice to include it as metadata,
 # so that the user knows which port to publish)
