@@ -1,6 +1,6 @@
 # Defines build arguments for the versions of PyTorch, CUDA, and cuDNN to use
-ARG PYTORCH_VERSION=2.10.0
-ARG CUDA_VERSION=13.0
+ARG PYTORCH_VERSION=2.6.0
+ARG CUDA_VERSION=12.4
 ARG CUDNN_VERSION=9
 
 # Allow passing in your host UID/GID (defaults 1000:1000)
