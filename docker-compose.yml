@@ -48,3 +48,9 @@ x-notes: >
   an issue at
 
   https://github.com/Elenedeath/ComfyUI-Docker
+x-portals:
+  - host: 0.0.0.0
+    name: Web UI
+    path: /
+    port: 8188
+    scheme: http
