@@ -26,6 +26,7 @@ RUN apt-get update \
       libglib2.0-0 \
       fonts-dejavu-core \
       fontconfig \
+      gcc \
  && rm -rf /var/lib/apt/lists/*
 
 # Upgrade pip
