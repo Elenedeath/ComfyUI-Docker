@@ -10,16 +10,16 @@ services:
       - "8188:8188"
     volumes:
       # persist your models:
-      - /mnt/.ix-apps/app_mounts/comfyui/models:/app/ComfyUI/models:rw
-
-      # load your input content:
-      - /mnt/.ix-apps/app_mounts/comfyui/input:/app/ComfyUI/input:rw
+      - /mnt/.ix-apps/app_mounts/comfyui/models:/opt/comfyui/models
 
       # persist your output content:
-      - /mnt/.ix-apps/app_mounts/comfyui/output:/app/ComfyUI/output:rw
+      - /mnt/.ix-apps/app_mounts/comfyui/output:/opt/comfyui/output
+
+      # persist your custom_nodes content:
+      - /mnt/.ix-apps/app_mounts/comfyui/custom_nodes:/opt/comfyui/custom_nodes
 
       # persist user settings:
-      - /mnt/.ix-apps/app_mounts/comfyui/user:/app/ComfyUI/user:rw
+      - /mnt/.ix-apps/app_mounts/comfyui/user:/opt/comfyui/user
 
     # https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/docker-specialized.html
     stdin_open: true

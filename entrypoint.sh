@@ -18,8 +18,8 @@ nslookup github.com 8.8.8.8 >/dev/null 2>&1 && echo "↳ DNS OK" || echo "↳ DN
 # --- Force ComfyUI-Manager config (uv off, no file logging, safe DB) ---
 # Make sure user dirs exist and are writable (handles Windows bind mounts)
 mkdir -p /opt/comfyui/user/default /opt/comfyui/user/__manager
-chown -R "$(id -u)":"$(id -g)" /app/ComfyUI/user || true
-chmod -R u+rwX /app/ComfyUI/user || true
+chown -R "$(id -u)":"$(id -g)" /opt/comfyui/user || true
+chmod -R u+rwX /opt/comfyui/user || true
 
 CFG_DIR="/opt/comfyui/user/__manager"
 CFG_FILE="$CFG_DIR/config.ini"
