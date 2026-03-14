@@ -1,65 +1,67 @@
-# ComfyUI Docker Build File v1.0.1 by John Aldred
-# https://www.johnaldred.com
-# https://github.com/kaouthia
-
-# Use a minimal Python base image (adjust version as needed)
-FROM python:3.14.3-slim-bookworm
-# Evaluate the need for NVidia specific CUDA images
-# @See https://catalog.ngc.nvidia.com/orgs/nvidia/containers/cuda?version=13.1.1-runtime-ubuntu24.04
+# Defines build arguments for the versions of PyTorch, CUDA, and cuDNN to use
+ARG PYTORCH_VERSION=2.10.0
+ARG CUDA_VERSION=13.0
+ARG CUDNN_VERSION=9
 
 # Allow passing in your host UID/GID (defaults 1000:1000)
 ARG UID=1000
 ARG GID=1000
 
-# Install OS deps and create the non-root user
-# Install Mesa/GL and GLib so OpenCV can load libGL.so.1 for ComfyUI-VideoHelperSuite
-RUN apt-get update \
- && apt-get install -y --no-install-recommends git \
-      gcc g++ python3-dev build-essential \
-      libgl1 \
-      libglx-mesa0 \
-      libglib2.0-0 \
-      fonts-dejavu-core \
-      fontconfig \
- && groupadd --gid ${GID} appuser \
- && useradd --uid ${UID} --gid ${GID} --create-home --shell /bin/bash appuser \
- && rm -rf /var/lib/apt/lists/*
+# This image is based on the latest official PyTorch image, because it already contains CUDA, CuDNN, and PyTorch
+FROM pytorch/pytorch:${PYTORCH_VERSION}-cuda${CUDA_VERSION}-cudnn${CUDNN_VERSION}-runtime
+
+# Defines build arguments for the versions of ComfyUI and ComfyUI Manager to use
+ARG COMFYUI_VERSION=0.17.1
+ARG COMFYUI_MANAGER_VERSION=4.0.5
+
+# Installs Git, because ComfyUI and the ComfyUI Manager are installed by cloning their respective Git repositories
+RUN apt-get update --assume-yes && \
+    apt-get install --assume-yes \
+        git \
+        sudo \
+        libgl1 \
+        libglx-mesa0 \
+        libglib2.0-0 && \
+    rm -rf /var/cache/apt/archives /var/lib/apt/lists/*
+
+# Clones the ComfyUI repository and checks out the latest release
+RUN git clone https://github.com/Comfy-Org/ComfyUI.git /opt/comfyui && \
+    cd /opt/comfyui && \
+    git checkout "v${COMFYUI_VERSION}"
+
+# Clones the ComfyUI Manager repository and checks out the latest release; ComfyUI Manager is an extension for ComfyUI that enables users to install
+# custom nodes and download models directly from the ComfyUI interface; instead of installing it to "/opt/comfyui/custom_nodes/ComfyUI-Manager", which
+# is the directory it is meant to be installed in, it is installed to its own directory; the entrypoint will symlink the directory to the correct
+# location upon startup; the reason for this is that the ComfyUI Manager must be installed in the same directory that it installs custom nodes to, but
+# this directory is mounted as a volume, so that the custom nodes are not installed inside of the container and are not lost when the container is
+# removed; this way, the custom nodes are installed on the host machine
+RUN git clone https://github.com/Comfy-Org/ComfyUI-Manager.git /opt/comfyui-manager && \
+    cd /opt/comfyui-manager && \
+    git checkout ${COMFYUI_MANAGER_VERSION}
 
 # Upgrade pip
 RUN pip install --upgrade pip
 
-# Copy and enable the startup script
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+# Installs the required Python packages for both ComfyUI and the ComfyUI Manager
+RUN pip install --break-system-packages \
+    --requirement /opt/comfyui/requirements.txt \
+    --requirement /opt/comfyui-manager/requirements.txt
 
 # Switch to non-root user
 USER $UID:$GID
 
-# make ~/.local/bin available on the PATH so scripts like tqdm, torchrun, etc. are found
-ENV PATH=/home/appuser/.local/bin:$PATH
-
-# Set the working directory
-WORKDIR /app
-
-# Force cu130 installation to be run before the ComfyUI pip install -r requirements.txt
-# https://github.com/comfy-org/ComfyUI?tab=readme-ov-file#nvidia
-RUN pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu130
-
-# Clone the ComfyUI repository (replace URL with the official repo)
-RUN git clone https://github.com/comfyanonymous/ComfyUI.git
-
-# Change directory to the ComfyUI folder
-WORKDIR /app/ComfyUI
-
-# Install ComfyUI dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Sets the working directory to the ComfyUI directory
+WORKDIR /opt/comfyui
 
 # (Optional) Clean up pip cache to reduce image size
 RUN pip cache purge
 
-# Expose the port that ComfyUI will use (change if needed)
+# Exposes the default port of ComfyUI (this is not actually exposing the port to the host machine, but it is good practice to include it as metadata,
+# so that the user knows which port to publish)
 EXPOSE 8188
 
-# Run entrypoint first, then start ComfyUI
-ENTRYPOINT ["/entrypoint.sh"]
-CMD ["python","/app/ComfyUI/main.py","--listen","0.0.0.0"]
+# Adds the startup script to the container; the startup script will create all necessary directories in the models and custom nodes volumes that were
+# mounted to the container and symlink the ComfyUI Manager to the correct directory; it will also create a user with the same UID and GID as the user
+# that started the container, so that the files created by the container are owned by the user that started the container and not the root user
+ADD entrypoint.sh /entrypoint.sh
+ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]

@@ -38,11 +38,11 @@ fi
 
 
 # --- Prepare custom nodes ---
-CN_DIR=/app/ComfyUI/custom_nodes
+CN_DIR=/opt/comfyui/custom_nodes
 INIT_MARKER="$CN_DIR/.custom_nodes_initialized"
 
 declare -A REPOS=(
-  ["ComfyUI-Manager"]="https://github.com/ltdrdata/ComfyUI-Manager.git"
+  ["ComfyUI-Manager"]="https://github.com/Comfy-Org/ComfyUI-Manager.git"
   ["ComfyUI_essentials"]="https://github.com/cubiq/ComfyUI_essentials.git"
   ["ComfyUI-Crystools"]="https://github.com/crystian/ComfyUI-Crystools.git"
   ["rgthree-comfy"]="https://github.com/rgthree/rgthree-comfy.git"
@@ -68,8 +68,8 @@ if [ ! -f "$INIT_MARKER" ]; then
   for dir in "$CN_DIR"/*/; do
     req="$dir/requirements.txt"
     if [ -f "$req" ]; then
-      echo "  ↳ pip install --upgrade -r $req"
-      python -m pip install --no-cache-dir --upgrade -r "$req"
+      echo "  ↳ pip install --break-system-packages --upgrade -r $req"
+      python -m pip install --break-system-packages --no-cache-dir --upgrade -r "$req"
     fi
   done
 
@@ -80,4 +80,4 @@ else
 fi
 
 echo "↳ Launching ComfyUI"
-exec "$@"
+exec python main.py --listen 0.0.0.0
