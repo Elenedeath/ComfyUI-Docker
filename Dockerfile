@@ -42,6 +42,11 @@ RUN pip install --break-system-packages --no-deps \
     torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 \
     --index-url https://download.pytorch.org/whl/cu124
 
+# Pré-install Crystools deps (deepdiff etc.)
+RUN pip install --break-system-packages \
+    deepdiff==8.6.1 pynvml py-cpuinfo piexif orderly-set \
+    pillow==12.1.1 numpy==2.4.3
+
 # Installs the required Python packages for both ComfyUI and the ComfyUI Manager
 RUN pip install --break-system-packages \
     --requirement /opt/comfyui/requirements.txt \
