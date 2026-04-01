@@ -81,6 +81,8 @@ RUN pip install --no-cache-dir \
 RUN pip install --no-cache-dir --force-reinstall "opencv-python==4.9.0.80"
 RUN pip install --no-cache-dir --force-reinstall "numpy==1.26.4"
 
+RUN pip uninstall -y pynvml 2>/dev/null || true
+
 # Build-time smoke tests — fail the build early if something is broken
 RUN python -c "import numpy; v=numpy.__version__; assert v.startswith('1.'), f'NumPy {v} >=2.0!'; print(v)"
 RUN python -c "import cv2, insightface, onnxruntime; print('Reactor deps OK')"
