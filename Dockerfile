@@ -60,7 +60,7 @@ RUN pip install --no-deps --no-cache-dir \
 # Utility / monitoring deps (Crystools etc.)
 # pillow intentionally left unpinned so ComfyUI requirements can resolve it
 RUN pip install --no-cache-dir \
-    deepdiff==8.6.1 pynvml py-cpuinfo piexif orderly-set pillow
+    deepdiff==8.6.1 nvidia-ml-py py-cpuinfo piexif orderly-set pillow
 
 # ComfyUI + ComfyUI-Manager Python requirements
 RUN pip install --no-cache-dir \
