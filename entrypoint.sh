@@ -38,6 +38,9 @@ declare -A REPOS=(
   ["ComfyUI-LLM-Session"]="https://github.com/kantan-kanto/ComfyUI-LLM-Session.git"
   ["ComfyUI-KJNodes"]="https://github.com/kijai/ComfyUI-KJNodes.git"
   ["comfyui-reactor"]="https://github.com/Gourieff/comfyui-reactor.git"
+  ["ComfyUI_IPAdapter_plus"]="https://github.com/cubiq/ComfyUI_IPAdapter_plus.git"
+  ["ComfyUI Impact Pack"]="https://github.com/ltdrdata/ComfyUI-Impact-Pack.git"
+  ["ComfyUI Impact Subpack"]="https://github.com/ltdrdata/ComfyUI-Impact-Subpack.git"
 )
 
 if [ ! -f "$INIT_MARKER" ]; then

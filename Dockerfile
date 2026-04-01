@@ -46,7 +46,11 @@ RUN git clone https://github.com/Comfy-Org/ComfyUI-Manager.git /opt/comfyui-mana
 # NumPy 1.x ABI — NumPy 2.x causes "_ARRAY_API not found" at import time.
 # This layer must come before any other pip install.
 # =============================================================================
-RUN pip install --no-cache-dir "numpy<2.0"
+# Global pip constraint: forbid NumPy 2.x everywhere
+RUN echo "numpy<2.0" > /opt/constraints.txt
+ENV PIP_CONSTRAINT=/opt/constraints.txt
+
+RUN pip install --no-cache-dir "numpy==1.26.4"
 
 # Pin PyTorch stack with --no-deps so pip cannot upgrade numpy as a side-effect
 RUN pip install --no-deps --no-cache-dir \
@@ -60,8 +64,8 @@ RUN pip install --no-cache-dir \
 
 # ComfyUI + ComfyUI-Manager Python requirements
 RUN pip install --no-cache-dir \
-    --requirement /opt/comfyui/requirements.txt \
-    --requirement /opt/comfyui-manager/requirements.txt
+    -r /opt/comfyui/requirements.txt \
+    -r /opt/comfyui-manager/requirements.txt
 
 # =============================================================================
 # Reactor / InsightFace dependency stack — baked into the image so that
@@ -71,17 +75,19 @@ RUN pip install --no-cache-dir \
     opencv-python==4.9.0.80 \
     insightface==0.7.3 \
     onnxruntime-gpu==1.18.0 \
-    ultralytics \
     segment-anything \
     accelerate
 
+RUN pip install --no-deps --no-cache-dir ultralytics
+RUN pip install --no-cache-dir \
+    matplotlib scipy pandas tqdm pyyaml requests psutil py-cpuinfo seaborn
+
+RUN pip install --no-cache-dir --force-reinstall "opencv-python==4.9.0.80"
+RUN pip install --no-cache-dir --force-reinstall "numpy==1.26.4"
+
 # Build-time smoke tests — fail the build early if something is broken
+RUN python -c "import numpy; v=numpy.__version__; assert v.startswith('1.'), f'NumPy {v} >=2.0!'; print(v)"
 RUN python -c "import cv2, insightface, onnxruntime; print('Reactor deps OK')"
-RUN python -c "\
-import numpy; \
-v = tuple(int(x) for x in numpy.__version__.split('.')[:2]); \
-assert v < (2, 0), f'NumPy {numpy.__version__} is >=2.0 — ABI will break cv2/onnxruntime!'; \
-print(f'NumPy {numpy.__version__} OK')"
 
 # Run as non-root
 USER $UID:$GID
