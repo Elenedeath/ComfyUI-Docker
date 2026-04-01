@@ -1,16 +1,22 @@
 services:
   comfyui:
-    image: hikage/comfyui-docker:latest
     container_name: comfyui
-    runtime: nvidia
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=all,compute,utility
+    image: hikage/comfyui-docker:latest
     ports:
-      - "8188:8188"
+      - '8188:8188'
+    restart: unless-stopped
+    runtime: nvidia
+    stdin_open: True
+    tty: True
     volumes:
       # persist your models:
       - /mnt/.ix-apps/app_mounts/comfyui/models:/opt/comfyui/models
+
+      # persist your input content:
+      - /mnt/.ix-apps/app_mounts/comfyui/input:/opt/comfyui/input
 
       # persist your output content:
       - /mnt/.ix-apps/app_mounts/comfyui/output:/opt/comfyui/output
@@ -21,10 +27,6 @@ services:
       # persist user settings:
       - /mnt/.ix-apps/app_mounts/comfyui/user:/opt/comfyui/user
 
-    # https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/docker-specialized.html
-    stdin_open: true
-    tty: true
-    restart: unless-stopped
 x-notes: >
   # comfyui-docker
 

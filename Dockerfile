@@ -1,4 +1,8 @@
-# Defines build arguments for the versions of PyTorch, CUDA, and cuDNN to use
+# =============================================================================
+# ComfyUI Docker — Elenedeath/ComfyUI-Docker
+# Fixes: numpy<2.0 (Reactor ABI), g++ (insightface build), Reactor deps baked in
+# =============================================================================
+
 ARG PYTORCH_VERSION=2.6.0
 ARG CUDA_VERSION=12.4
 ARG CUDNN_VERSION=9
@@ -7,64 +11,83 @@ ARG CUDNN_VERSION=9
 ARG UID=1000
 ARG GID=1000
 
-# This image is based on the latest official PyTorch image, because it already contains CUDA, CuDNN, and PyTorch
 FROM pytorch/pytorch:${PYTORCH_VERSION}-cuda${CUDA_VERSION}-cudnn${CUDNN_VERSION}-runtime
 
-# Defines build arguments for the versions of ComfyUI and ComfyUI Manager to use
 ARG COMFYUI_VERSION=0.17.1
 ARG COMFYUI_MANAGER_VERSION=4.0.5
 
-# Installs Git, because ComfyUI and the ComfyUI Manager are installed by cloning their respective Git repositories
+# Installs Git + build tools (g++ required for insightface Cython build)
+# + OpenCV system libs
 RUN apt-get update --assume-yes && \
     apt-get install --assume-yes \
         git \
         sudo \
+        gcc \
+        g++ \
+        build-essential \
         libgl1 \
         libglx-mesa0 \
-        libglib2.0-0 && \
+        libglib2.0-0 \
+        libgomp1 \
+        dnsutils && \
     rm -rf /var/cache/apt/archives /var/lib/apt/lists/*
 
-# Clones the ComfyUI repository and checks out the latest release
+# Clone ComfyUI
 RUN git clone https://github.com/Comfy-Org/ComfyUI.git /opt/comfyui && \
     cd /opt/comfyui && git checkout "v${COMFYUI_VERSION}"
 
-# Clones the ComfyUI Manager repository and checks out the latest release; ComfyUI Manager is an extension for ComfyUI that enables users to install
-# custom nodes and download models directly from the ComfyUI interface; instead of installing it to "/opt/comfyui/custom_nodes/ComfyUI-Manager", which
-# is the directory it is meant to be installed in, it is installed to its own directory; the entrypoint will symlink the directory to the correct
-# location upon startup; the reason for this is that the ComfyUI Manager must be installed in the same directory that it installs custom nodes to, but
-# this directory is mounted as a volume, so that the custom nodes are not installed inside of the container and are not lost when the container is
-# removed; this way, the custom nodes are installed on the host machine
+# Clone ComfyUI Manager (entrypoint will symlink it into custom_nodes/)
 RUN git clone https://github.com/Comfy-Org/ComfyUI-Manager.git /opt/comfyui-manager && \
     cd /opt/comfyui-manager && git checkout ${COMFYUI_MANAGER_VERSION}
 
-# Pin PyTorch stack
-RUN pip install --break-system-packages --no-deps \
+# =============================================================================
+# CRITICAL: pin NumPy <2.0 BEFORE everything else.
+# cv2 4.9, insightface 0.7.3 and onnxruntime-gpu 1.18 are compiled against
+# NumPy 1.x ABI — NumPy 2.x causes "_ARRAY_API not found" at import time.
+# This layer must come before any other pip install.
+# =============================================================================
+RUN pip install --no-cache-dir "numpy<2.0"
+
+# Pin PyTorch stack with --no-deps so pip cannot upgrade numpy as a side-effect
+RUN pip install --no-deps --no-cache-dir \
     torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 \
     --index-url https://download.pytorch.org/whl/cu124
 
-# Pré-install Crystools deps (deepdiff etc.)
-RUN pip install --break-system-packages \
-    deepdiff==8.6.1 pynvml py-cpuinfo piexif orderly-set \
-    pillow==12.1.1 numpy==2.4.3
+# Utility / monitoring deps (Crystools etc.)
+# pillow intentionally left unpinned so ComfyUI requirements can resolve it
+RUN pip install --no-cache-dir \
+    deepdiff==8.6.1 pynvml py-cpuinfo piexif orderly-set pillow
 
-# Installs the required Python packages for both ComfyUI and the ComfyUI Manager
-RUN pip install --break-system-packages \
+# ComfyUI + ComfyUI-Manager Python requirements
+RUN pip install --no-cache-dir \
     --requirement /opt/comfyui/requirements.txt \
-    --requirement /opt/comfyui-manager/requirements.txt && \
-    pip cache purge
+    --requirement /opt/comfyui-manager/requirements.txt
 
-# Switch to non-root user
+# =============================================================================
+# Reactor / InsightFace dependency stack — baked into the image so that
+# container recreation never loses them (no more "No module named cv2").
+# =============================================================================
+RUN pip install --no-cache-dir \
+    opencv-python==4.9.0.80 \
+    insightface==0.7.3 \
+    onnxruntime-gpu==1.18.0 \
+    ultralytics \
+    segment-anything \
+    accelerate
+
+# Build-time smoke tests — fail the build early if something is broken
+RUN python -c "import cv2, insightface, onnxruntime; print('Reactor deps OK')"
+RUN python -c "\
+import numpy; \
+v = tuple(int(x) for x in numpy.__version__.split('.')[:2]); \
+assert v < (2, 0), f'NumPy {numpy.__version__} is >=2.0 — ABI will break cv2/onnxruntime!'; \
+print(f'NumPy {numpy.__version__} OK')"
+
+# Run as non-root
 USER $UID:$GID
 
-# Sets the working directory to the ComfyUI directory
 WORKDIR /opt/comfyui
-
-# Exposes the default port of ComfyUI (this is not actually exposing the port to the host machine, but it is good practice to include it as metadata,
-# so that the user knows which port to publish)
 EXPOSE 8188
 
-# Adds the startup script to the container; the startup script will create all necessary directories in the models and custom nodes volumes that were
-# mounted to the container and symlink the ComfyUI Manager to the correct directory; it will also create a user with the same UID and GID as the user
-# that started the container, so that the files created by the container are owned by the user that started the container and not the root user
 ADD entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]
