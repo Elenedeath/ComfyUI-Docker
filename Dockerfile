@@ -13,9 +13,6 @@ ARG GID=1000
 
 FROM pytorch/pytorch:${PYTORCH_VERSION}-cuda${CUDA_VERSION}-cudnn${CUDNN_VERSION}-runtime
 
-ARG COMFYUI_VERSION=0.17.1
-ARG COMFYUI_MANAGER_VERSION=4.0.5
-
 # Installs Git + build tools (g++ required for insightface Cython build)
 # + OpenCV system libs
 RUN apt-get update --assume-yes && \
@@ -33,12 +30,11 @@ RUN apt-get update --assume-yes && \
     rm -rf /var/cache/apt/archives /var/lib/apt/lists/*
 
 # Clone ComfyUI
-RUN git clone https://github.com/Comfy-Org/ComfyUI.git /opt/comfyui && \
-    cd /opt/comfyui && git checkout "v${COMFYUI_VERSION}"
+RUN git clone https://github.com/comfyanonymous/ComfyUI.git /opt/comfyui
 
 # Clone ComfyUI Manager (entrypoint will symlink it into custom_nodes/)
-RUN git clone https://github.com/Comfy-Org/ComfyUI-Manager.git /opt/comfyui-manager && \
-    cd /opt/comfyui-manager && git checkout ${COMFYUI_MANAGER_VERSION}
+RUN git clone https://github.com/ltdrdata/ComfyUI-Manager.git \
+    /opt/comfyui/custom_nodes/ComfyUI-Manager
 
 # =============================================================================
 # CRITICAL: pin NumPy <2.0 BEFORE everything else.
