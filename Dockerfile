@@ -61,7 +61,7 @@ RUN pip install --no-cache-dir \
 # ComfyUI + ComfyUI-Manager Python requirements
 RUN pip install --no-cache-dir \
     -r /opt/comfyui/requirements.txt \
-    -r /opt/comfyui-manager/requirements.txt
+    -r /opt/comfyui/custom_nodes/ComfyUI-Manager/requirements.txt
 
 # =============================================================================
 # Reactor / InsightFace dependency stack — baked into the image so that
