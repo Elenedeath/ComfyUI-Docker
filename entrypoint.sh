@@ -70,5 +70,14 @@ else
   echo "Custom nodes already initialized."
 fi
 
+# === Patch ReActor NSFW filter ===
+REACTOR_SFW="$CN_DIR/comfyui-reactor/scripts/reactor_sfw.py"
+if [ -f "$REACTOR_SFW" ]; then
+    sed -i 's/SCORE = 0.96/SCORE = 1.01/' "$REACTOR_SFW"
+    echo "[PATCH] ReActor NSFW filter disabled (SCORE=1.01)"
+else
+    echo "[PATCH] reactor_sfw.py not found, skipping"
+fi
+
 echo "Launching ComfyUI..."
 exec python main.py --listen 0.0.0.0
