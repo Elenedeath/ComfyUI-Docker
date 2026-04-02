@@ -5,6 +5,7 @@ services:
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=all,compute,utility
       - CLI_ARGS=--lowvram --force-fp16
+      - ONNXRUNTIME_EXECUTION_PROVIDER=CPUExecutionProvider
     image: hikage/comfyui-docker:latest
     ports:
       - '8188:8188'
