@@ -96,6 +96,10 @@ RUN pip uninstall -y pynvml 2>/dev/null || true
 RUN python -c "import numpy; v=numpy.__version__; assert v.startswith('1.'), f'NumPy {v} >=2.0!'; print(v)"
 RUN python -c "import cv2, insightface, onnxruntime; print('Reactor deps OK')"
 
+# Disables ReActor's NSFW filter (score 1.01 = never triggered)
+RUN sed -i 's/SCORE = 0.96/SCORE = 1.01/' \
+    /opt/comfyui/custom_nodes/comfyui-reactor/scripts/reactor_sfw.py
+
 # Run as non-root
 USER $UID:$GID
 
