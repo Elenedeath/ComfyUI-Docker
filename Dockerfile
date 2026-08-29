@@ -3,8 +3,8 @@
 # Fixes: numpy<2.0 (Reactor ABI), g++ (insightface build), Reactor deps baked in
 # =============================================================================
 
-ARG PYTORCH_VERSION=2.6.0
-ARG CUDA_VERSION=12.4
+ARG PYTORCH_VERSION=2.13.0
+ARG CUDA_VERSION=13.0
 ARG CUDNN_VERSION=9
 
 # Allow passing in your host UID/GID (defaults 1000:1000)
@@ -50,8 +50,8 @@ RUN pip install --no-cache-dir "numpy==1.26.4"
 
 # Pin PyTorch stack with --no-deps so pip cannot upgrade numpy as a side-effect
 RUN pip install --no-deps --no-cache-dir \
-    torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 \
-    --index-url https://download.pytorch.org/whl/cu124
+    torch==2.13.0 torchvision==0.28.0 torchaudio==2.11.0 \
+    --index-url https://download.pytorch.org/whl/cu130
 
 # Utility / monitoring deps (Crystools etc.)
 # pillow intentionally left unpinned so ComfyUI requirements can resolve it
