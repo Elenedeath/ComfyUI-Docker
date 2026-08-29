@@ -13,6 +13,8 @@ ARG GID=1000
 
 FROM pytorch/pytorch:${PYTORCH_VERSION}-cuda${CUDA_VERSION}-cudnn${CUDNN_VERSION}-runtime
 
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
+
 # Installs Git + build tools (g++ required for insightface Cython build)
 # + OpenCV system libs
 RUN apt-get update --assume-yes && \
